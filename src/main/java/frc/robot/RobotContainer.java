@@ -5,8 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.*;
-
-import frc.robot.subsystem.Motor;
+import frc.robot.subsystems.Motor;
 
 public class RobotContainer {
   private final Motor m_motor = new Motor("Motor"); //Adjust parameters as needed

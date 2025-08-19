@@ -1,12 +1,14 @@
-package frc.robot.subsystem;
+package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.networktables.*;
 import com.ctre.phoenix6.configs.*;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 public class Motor extends SubsystemBase {
     private NetworkTable m_tab; // This is the table that data will be sent to
     // @TODO - Initialize a motor object
+    private TalonFX m_motor = new TalonFX(0);
 
     /**
      * @param name The name of the NetworkTable to use for this motor.
@@ -14,7 +16,7 @@ public class Motor extends SubsystemBase {
     public Motor(String name) {
         // Network tables are used to send data to and from the robot. 
         // Values in network table can be viewed and edited in Elastic Dashboard
-        m_tab = NetworkTableInstance.getDefault().getTable(name);
+        m_tab = NetworkTableInstance.getDefault().getTable(name); //Create a table in NetworkTables for this motor
 
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
