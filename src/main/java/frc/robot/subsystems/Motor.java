@@ -1,46 +1,75 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.networktables.*;
+import frc.robot.Button;
+
 import com.ctre.phoenix6.configs.*;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import badgerlog.entry.*;
+import edu.wpi.first.math.*;
+
 public class Motor extends SubsystemBase {
-    private NetworkTable m_tab; // This is the table that data will be sent to
-    // @TODO - Initialize a motor object
+    public static final double MAX_VOLTS = 1.5;
+
+    @Entry(EntryType.Subscriber)
+    private static double kS = 0.0, kG = 0.0, kV = 0.0, kA = 0.0, kP = 0.0, kI = 0.0, kD = 0.0;
+
+    @Entry(EntryType.Sendable)
+    private static Button m_applyConfigButton = new Button("Apply FF Config");
+
     private TalonFX m_motor = new TalonFX(0);
+    private MotionMagicVoltage m_request = new MotionMagicVoltage(0);
 
-    /**
-     * @param name The name of the NetworkTable to use for this motor.
-     */
-    public Motor(String name) {
-        // Network tables are used to send data to and from the robot. 
-        // Values in network table can be viewed and edited in Elastic Dashboard
-        m_tab = NetworkTableInstance.getDefault().getTable(name); //Create a table in NetworkTables for this motor
-
+    
+    public Motor() {
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
         FeedbackConfigs fdb = cfg.Feedback;
-        // @TODO - Set gear ratio and offset 
+        fdb.SensorToMechanismRatio = 1;
 
         MotionMagicConfigs mm = cfg.MotionMagic;
-        // @TODO - Set physical limits (vel, acc and optionally jerk)
+        mm.MotionMagicCruiseVelocity = 3000;
+        mm.MotionMagicAcceleration = 3000;
 
-        Slot0Configs slot0 = cfg.Slot0;
-        // @TODO - Set PID and FF constants
-
-        // @TODO - apply the configuration to the motor
+        applyFFConfig();
+        m_motor.getConfigurator().apply(cfg);
     }
 
     public Command moveTo(double position) {
-        // @TODO: make the motor move to desired position
-        return null;
+        return Commands.runOnce(() -> {
+            m_motor.setControl(m_request.withPosition(position));
+        });
+    }
+
+    public Command setManualVoltage(double volts) {
+        return Commands.runOnce(() -> {
+            m_motor.setVoltage(MathUtil.clamp(volts, -MAX_VOLTS, MAX_VOLTS));
+        });
     }
 
     @Override
-    public void periodic(){
-        // TODO: Put the motor position in the network table
-        // TODO: Get the setpoint from network table and move the motor to that position
-        // (hint: you might need a member variable and you need to first put the setpoint in the network table)
+    public void periodic() {
+        if (m_applyConfigButton.getButtonState()) {
+            applyFFConfig();
+            m_applyConfigButton.setButtonState(false);
+        }
+    }
+
+    private void applyFFConfig() {
+        System.out.println("Applying FF Config");
+        TalonFXConfiguration cfg = new TalonFXConfiguration();
+
+        Slot0Configs slot0 = cfg.Slot0;
+        slot0.kS = kS;
+        slot0.kG = kG;
+        slot0.kV = kV;
+        slot0.kA = kA;
+        slot0.kP = kP;
+        slot0.kI = kI;
+        slot0.kD = kD;
+
+        m_motor.getConfigurator().apply(cfg);
     }
 }
