@@ -19,7 +19,7 @@ public class RobotContainer {
   public static double m_targPos = 0;
 
   private final Motor m_motor;
-  private final XboxController m_controller = new XboxController(0);
+  private final XboxController m_controller = new XboxController(2);
 
   public RobotContainer() {
     Dashboard.initialize(DashboardConfig.defaultConfig);

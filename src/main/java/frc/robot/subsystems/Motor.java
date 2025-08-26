@@ -1,37 +1,43 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj.event.EventLoop;
+import edu.wpi.first.math.*;
 
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import badgerlog.Dashboard;
 import badgerlog.entry.*;
-import edu.wpi.first.math.*;
-import edu.wpi.first.wpilibj.event.EventLoop;
 
 public class Motor extends SubsystemBase {
     public static final double MAX_VOLTS = 1.5;
 
     @Entry(EntryType.Subscriber)
-    private static double kS = 0.0, kG = 0.0, kV = 0.0, kA = 0.0, kP = 0.0, kI = 0.0, kD = 0.0;
+    private static double kS = 0.1, kG = 0.0, kV = 1.0, kA = 1.0, kP = 0.0, kI = 0.0, kD = 0.0;
 
-    private TalonFX m_motor = new TalonFX(11);
+    private TalonFX m_motor = new TalonFX(11, "rio");
     private MotionMagicVoltage m_request = new MotionMagicVoltage(0);
 
     
     public Motor() {
         TalonFXConfiguration cfg = new TalonFXConfiguration();
+        cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+        VoltageConfigs vConfig = cfg.Voltage;
+        vConfig.PeakForwardVoltage = MAX_VOLTS;
+        vConfig.PeakReverseVoltage = -MAX_VOLTS;
 
         FeedbackConfigs fdb = cfg.Feedback;
         fdb.SensorToMechanismRatio = 1;
 
         MotionMagicConfigs mm = cfg.MotionMagic;
-        mm.MotionMagicCruiseVelocity = 3000;
-        mm.MotionMagicAcceleration = 3000;
+        mm.MotionMagicCruiseVelocity = 30;
+        mm.MotionMagicAcceleration = 30;
 
         applyFFConfig();
         m_motor.getConfigurator().apply(cfg);
