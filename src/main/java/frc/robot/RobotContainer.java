@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Motor;
 import badgerlog.*;
@@ -39,6 +40,9 @@ public class RobotContainer {
       .onTrue(m_motor.setManualVoltage(1))
       .onFalse(m_motor.setManualVoltage(0));
     }
+
+    RobotModeTriggers.disabled().onTrue(m_motor.reset());
+    
   }
 
   public Command getAutonomousCommand() {

@@ -18,7 +18,10 @@ public class Motor extends SubsystemBase {
     public static final double MAX_VOLTS = 1.5;
 
     @Entry(EntryType.Subscriber)
-    private static double kS = 0.1, kG = 0.0, kV = 1.0, kA = 1.0, kP = 0.0, kI = 0.0, kD = 0.0;
+    private static double kS = 0.2, kG = 0.0, kV = 1.0, kA = 1.0, kP = 0.0, kI = 0.0, kD = 0.0;
+    
+    @Entry(EntryType.Publisher)
+    private static double m_motorPosition = 0.0;
 
     private TalonFX m_motor = new TalonFX(11, "rio");
     private MotionMagicVoltage m_request = new MotionMagicVoltage(0);
@@ -27,6 +30,7 @@ public class Motor extends SubsystemBase {
     public Motor() {
         TalonFXConfiguration cfg = new TalonFXConfiguration();
         cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        // cfg.MotorOutput.Inverted = true;
 
         VoltageConfigs vConfig = cfg.Voltage;
         vConfig.PeakForwardVoltage = MAX_VOLTS;
@@ -46,12 +50,14 @@ public class Motor extends SubsystemBase {
         Dashboard.getAutoResettingButton("Apply FF config", buttonLoop)
             .onTrue(Commands.runOnce(() -> {
                 applyFFConfig();
-            }));
+                System.out.println("Ok buddy, I've updated the FF config!");
+            }, this));
     }
 
     public Command moveTo(DoubleSupplier position) {
         return Commands.runOnce(() -> {
             System.out.printf("Moving to position: %.2f%n", position.getAsDouble());
+            // m_motor.stopMotor();
             m_motor.setControl(m_request.withPosition(position.getAsDouble()));
         });
     }
@@ -60,6 +66,12 @@ public class Motor extends SubsystemBase {
         return Commands.runOnce(() -> {
             m_motor.setVoltage(MathUtil.clamp(volts, -MAX_VOLTS, MAX_VOLTS));
         });
+    }
+
+    public Command reset() {
+        return Commands.runOnce(() -> {
+            m_motor.setPosition(0);
+        }).ignoringDisable(true);
     }
 
     private void applyFFConfig() {
@@ -77,5 +89,10 @@ public class Motor extends SubsystemBase {
         slot0.kD = kD;
 
         m_motor.getConfigurator().apply(cfg);
+    }
+
+    @Override
+    public void periodic() {
+        m_motorPosition = m_motor.getPosition().getValueAsDouble();
     }
 }
